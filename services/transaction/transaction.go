@@ -16,12 +16,39 @@ type TransactionService struct {
 }
 
 type ITransactionService interface {
+	GetAll(context.Context) ([]dto.TransactionResponse, error)
 	Create(context.Context, *dto.CreateTransactionRequest) (*dto.CreateTransactionResponse, error)
 	Update(context.Context, string, *dto.UpdateTransactionRequest) (*dto.UpdateTransactionResponse, error)
 }
 
 func NewTransactionService(repository repositories.ITransactionRepository) ITransactionService {
 	return &TransactionService{repository: repository}
+}
+
+func (r *TransactionService) GetAll(ctx context.Context) ([]dto.TransactionResponse, error) {
+	var responses []dto.TransactionResponse
+
+	transactions, err := r.repository.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, t := range transactions {
+		responses = append(responses, dto.TransactionResponse{
+			MerchantID:             t.MerchantID,
+			ReferenceNumber:        t.ReferenceNumber,
+			PartnerReferenceNumber: t.PartnerReferenceNumber,
+			Status:                 t.Status,
+			TransactionDate:        t.TransactionDate,
+			PaidDate:               t.PaidDate,
+			Amount: dto.Amount{
+				Value:    strconv.FormatUint(uint64(t.Amount.Value), 10),
+				Currency: t.Amount.Currency,
+			},
+		})
+	}
+
+	return responses, nil
 }
 
 func (r *TransactionService) Create(ctx context.Context, request *dto.CreateTransactionRequest) (*dto.CreateTransactionResponse, error) {
@@ -39,6 +66,7 @@ func (r *TransactionService) Create(ctx context.Context, request *dto.CreateTran
 	now := time.Now()
 
 	transaction := &models.Transaction{
+		MerchantID:             request.MerchantID,
 		PartnerReferenceNumber: request.PartnerReferenceNumber,
 		Amount: models.Amount{
 			Value:    uint(value),

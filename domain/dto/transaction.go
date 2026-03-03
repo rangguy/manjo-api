@@ -32,3 +32,13 @@ type UpdateTransactionResponse struct {
 	Amount          Amount `json:"amount"`
 	Status          string `json:"transactionStatusDesc"`
 }
+
+type TransactionResponse struct {
+	MerchantID             string     `json:"merchantId"`
+	ReferenceNumber        string     `json:"originalReferenceNo" `
+	PartnerReferenceNumber string     `json:"originalPartnerReferenceNo" `
+	Status                 string     `json:"transactionStatusDesc" `
+	TransactionDate        *time.Time `json:"transactionDate" `
+	PaidDate               *time.Time `json:"paidTime" `
+	Amount                 Amount     `json:"amount"`
+}

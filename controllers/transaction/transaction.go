@@ -12,12 +12,27 @@ type TransactionController struct {
 }
 
 type ITransactionController interface {
-	Create(ctx *fiber.Ctx) error
-	Update(ctx *fiber.Ctx) error
+	GetAll(*fiber.Ctx) error
+	Create(*fiber.Ctx) error
+	Update(*fiber.Ctx) error
 }
 
 func NewTransactionController(service services.ITransactionService) ITransactionController {
 	return &TransactionController{service: service}
+}
+
+func (r *TransactionController) GetAll(ctx *fiber.Ctx) error {
+	transactions, err := r.service.GetAll(ctx.Context())
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "success",
+		"data":    transactions,
+	})
 }
 
 func (r *TransactionController) Create(ctx *fiber.Ctx) error {

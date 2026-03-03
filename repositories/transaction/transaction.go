@@ -12,6 +12,7 @@ type TransactionRepository struct {
 }
 
 type ITransactionRepository interface {
+	FindAll(context.Context) ([]models.Transaction, error)
 	FindByReferenceNumber(context.Context, string) (*models.Transaction, error)
 	Create(context.Context, *models.Transaction) (*models.Transaction, error)
 	Update(context.Context, string, *models.Transaction) (*models.Transaction, error)
@@ -19,6 +20,16 @@ type ITransactionRepository interface {
 
 func NewTransactionRepository(db *gorm.DB) ITransactionRepository {
 	return &TransactionRepository{db: db}
+}
+
+func (r *TransactionRepository) FindAll(ctx context.Context) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+	err := r.db.WithContext(ctx).Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, err
 }
 
 func (r *TransactionRepository) FindByReferenceNumber(ctx context.Context, referenceNumber string) (*models.Transaction, error) {

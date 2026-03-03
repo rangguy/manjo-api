@@ -44,9 +44,9 @@ func main() {
 	app := fiber.New()
 
 	app.Use(func(c *fiber.Ctx) error {
-		c.Set("Access-Control-Allow-Origin", "*")
+		c.Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		c.Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, PATCH")
-		c.Set("Access-Control-Allow-Headers", "Content-Type, x-api-key, x-request-at")
+		c.Set("Access-Control-Allow-Headers", "Content-Type, api-key")
 
 		if c.Method() == "OPTIONS" {
 			return c.SendStatus(fiber.StatusNoContent)
@@ -67,6 +67,7 @@ func main() {
 	group.Use(middlewares.Authenticate())
 	group.Post("/qr/generate", transactionController.Create)
 	group.Post("/qr/payment", transactionController.Update)
+	group.Get("/qr/transactions", transactionController.GetAll)
 
 	if err = app.Listen(":" + appPort); err != nil {
 		log.Fatal(err)
