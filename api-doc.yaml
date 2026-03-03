@@ -82,7 +82,7 @@ components:
         paidTime:
           type: string
           format: date-time
-          example: 2025-09-21T09:25:00+07:00
+          example: "2025-09-21T09:25:00+07:00"
         amount:
           $ref: '#/components/schemas/Amount'
 
@@ -99,6 +99,50 @@ components:
           type: string
           example: Success
 
+    TransactionItem:
+      type: object
+      properties:
+        merchantId:
+          type: string
+          example: "EP27842182"
+          description: Kode merchant. Bisa kosong jika belum diisi
+        originalReferenceNo:
+          type: string
+          example: "A6096942400"
+          description: Nomor referensi transaksi dari sistem
+        originalPartnerReferenceNo:
+          type: string
+          example: "DIRECT-API-NMS-whhq7gvx58"
+          description: Nomor referensi dari merchant/partner
+        transactionStatusDesc:
+          type: string
+          example: "Success"
+          description: "Status transaksi: Success, Pending, Failed, atau string kosong jika belum diproses"
+        transactionDate:
+          type: string
+          format: date-time
+          example: "2026-03-02T17:44:36.096942+07:00"
+          description: Waktu transaksi dibuat
+        paidTime:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-03-03T06:25:00+07:00"
+          description: Waktu pembayaran. null jika belum dibayar
+        amount:
+          $ref: '#/components/schemas/Amount'
+
+    TransactionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionItem'
+        message:
+          type: string
+          example: success
+
     ErrorResponse:
       type: object
       properties:
@@ -113,6 +157,50 @@ security:
   - ApiKeyAuth: []
 
 paths:
+  /transactions:
+    get:
+      summary: Get All Transactions
+      description: >
+        Mengambil seluruh data transaksi.
+        Field `merchantId` dan `transactionStatusDesc` dapat bernilai string kosong.
+        Field `paidTime` dapat bernilai `null` jika transaksi belum dibayar.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Daftar transaksi berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionListResponse'
+              example:
+                message: success
+                data:
+                  - merchantId: "EP27842182"
+                    originalReferenceNo: "A6096942400"
+                    originalPartnerReferenceNo: "DIRECT-API-NMS-whhq7gvx58"
+                    transactionStatusDesc: "Success"
+                    transactionDate: "2026-03-02T17:44:36.096942+07:00"
+                    paidTime: "2026-03-03T06:25:00+07:00"
+                    amount:
+                      value: "10000"
+                      currency: "IDR"
+                  - merchantId: ""
+                    originalReferenceNo: "A7431853900"
+                    originalPartnerReferenceNo: "DIRECT-API-NMS-whhq7gvx58"
+                    transactionStatusDesc: ""
+                    transactionDate: "2026-03-02T15:15:17.431853+07:00"
+                    paidTime: null
+                    amount:
+                      value: "10000"
+                      currency: "IDR"
+        "401":
+          description: Unauthorized - Missing header atau invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /generate:
     post:
       summary: Generate QR Code
